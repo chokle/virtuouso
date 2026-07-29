@@ -1,9 +1,11 @@
 import { useCallback, useEffect, useState } from "react";
 
+export type Card = { title: string; bullets: string[] };
+
 export type Deck = {
   id: string;
   prompt: string;
-  cards: string[];
+  cards: Card[];
   createdAt: number;
 };
 

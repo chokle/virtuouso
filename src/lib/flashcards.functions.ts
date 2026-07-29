@@ -12,7 +12,7 @@ export const generateFlashcards = createServerFn({ method: "POST" })
     const key = process.env.LOVABLE_API_KEY;
     if (!key) throw new Error("Missing LOVABLE_API_KEY");
 
-    const systemPrompt = `You generate concise study flashcards. Each card is a single self-contained statement, fact, term-with-definition, or Q&A on one line. Keep each card under 140 characters. Return exactly ${data.count} cards.`;
+    const systemPrompt = `You organize study material into flashcards. Each card is ONE topic with a short heading and the bullet points that belong under it. Group related points together — do not split one topic into multiple cards, and do not put unrelated points on the same card. If the user provides pre-structured material with headings, preserve those headings and their bullets on individual cards. Aim for around ${data.count} cards but prefer natural topic grouping over the exact count. Keep each bullet concise (under 140 chars).`;
 
     const res = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
@@ -37,7 +37,15 @@ export const generateFlashcards = createServerFn({ method: "POST" })
               properties: {
                 cards: {
                   type: "array",
-                  items: { type: "string" },
+                  items: {
+                    type: "object",
+                    additionalProperties: false,
+                    properties: {
+                      title: { type: "string" },
+                      bullets: { type: "array", items: { type: "string" } },
+                    },
+                    required: ["title", "bullets"],
+                  },
                 },
               },
               required: ["cards"],
@@ -68,9 +76,22 @@ export const generateFlashcards = createServerFn({ method: "POST" })
     } catch {
       throw new Error("AI returned invalid JSON.");
     }
-    const cards = Array.isArray(parsed.cards)
-      ? parsed.cards.filter((c): c is string => typeof c === "string" && c.trim().length > 0)
-      : [];
+    const raw = Array.isArray(parsed.cards) ? parsed.cards : [];
+    const cards = raw
+      .map((c) => {
+        if (!c || typeof c !== "object") return null;
+        const obj = c as { title?: unknown; bullets?: unknown };
+        const title = typeof obj.title === "string" ? obj.title.trim() : "";
+        const bullets = Array.isArray(obj.bullets)
+          ? obj.bullets
+              .filter((b): b is string => typeof b === "string")
+              .map((b) => b.trim())
+              .filter(Boolean)
+          : [];
+        if (!title && bullets.length === 0) return null;
+        return { title, bullets };
+      })
+      .filter((c): c is { title: string; bullets: string[] } => c !== null);
     if (cards.length === 0) throw new Error("No cards generated. Try a different prompt.");
-    return { cards: cards.slice(0, data.count) };
+    return { cards };
   });
