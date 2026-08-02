@@ -14,17 +14,17 @@ import { Play, Trash2, Sparkles } from "lucide-react";
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "Flashcard Generator — Prompt to Study Cards" },
+      { title: "Flashcard Generator— Prompt to Study Cards" },
       {
         name: "description",
         content:
-          "Turn any topic into a fullscreen deck of study flashcards. Tap or swipe to flip through. Free and saved in your browser.",
+          "Turn any topic into a fullscreen deck of study flashcards. Tap or swipe to flip through and saved in your browser.",
       },
-      { property: "og:title", content: "Flashcard Generator — Prompt to Study Cards" },
+      { property: "og:title", content: "Flashcard Generator— Prompt to Study Cards" },
       {
         property: "og:description",
         content:
-          "Turn any topic into a fullscreen deck of study flashcards. Tap or swipe to flip through.",
+          "Turn any topic into a fullscreen deck of study flashcards. Tap or swipe to flip through and saved in your browser.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
